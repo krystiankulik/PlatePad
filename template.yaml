@@ -1,0 +1,341 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: PlatePad SAM template
+
+Parameters:
+  CognitoUserPoolArn:
+    Type: String
+    Description: The ARN of the Cognito User Pool
+Globals:
+  Api:
+    Auth:
+      Authorizers:
+        PlatePadCognitoAuthorizer:
+          UserPoolArn: !Ref CognitoUserPoolArn
+Resources:
+  PlatePadGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: platePad_gateway
+      StageName: prod
+      Auth:
+        DefaultAuthorizer: PlatePadCognitoAuthorizer
+        Authorizers:
+          PlatePadCognitoAuthorizer:
+            UserPoolArn: !Ref CognitoUserPoolArn
+  # auth endpoints definitions
+  LogInFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: logIn
+      CodeUri: src/lambdas/auth/logIn
+      Handler: logIn.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+        - AmazonCognitoPowerUser
+      Events:
+        LogInApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/auth/login
+            Method: POST
+            Auth:
+              Authorizer: NONE
+  SignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: signUp
+      CodeUri: src/lambdas/auth/signUp
+      Handler: signUp.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+        - AmazonCognitoPowerUser
+      Events:
+        SignUpApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/auth/signup
+            Method: POST
+            Auth:
+              Authorizer: NONE
+  ConfirmEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: confirmEmail
+      CodeUri: src/lambdas/auth/confirmEmail
+      Handler: confirmEmail.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+        - AmazonCognitoPowerUser
+      Events:
+        ConfirmEmailApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/auth/confirm-email
+            Method: POST
+            Auth:
+              Authorizer: NONE
+  # ingredients endpoints definitions
+  SaveIngredientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: saveIngredient
+      CodeUri: src/lambdas/ingredients/saveIngredient
+      Handler: saveIngredient.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        SaveIngredientApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/ingredients
+            Method: POST
+  GetIngredientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getIngredients
+      CodeUri: src/lambdas/ingredients/getIngredients
+      Handler: getIngredients.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        GetIngredientApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/ingredients
+            Method: GET
+  GetIngredientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getIngredient
+      CodeUri: src/lambdas/ingredients/getIngredient
+      Handler: getIngredient.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        GetIngredientApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/ingredients/{name}
+            Method: GET
+  DeleteIngredientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deleteIngredient
+      CodeUri: src/lambdas/ingredients/deleteIngredient
+      Handler: deleteIngredient.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        DeleteIngredientApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/ingredients/{name}
+            Method: DELETE
+  UpdateIngredientFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: updateIngredient
+      CodeUri: src/lambdas/ingredients/updateIngredient
+      Handler: updateIngredient.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        UpdateIngredientApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/ingredients/{name}
+            Method: PATCH
+  # recipes endpoints definitions
+  SaveRecipeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: saveRecipe
+      CodeUri: src/lambdas/recipes/saveRecipe
+      Handler: saveRecipe.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        SaveRecipeApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/recipes
+            Method: POST
+  GetRecipesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getRecipes
+      CodeUri: src/lambdas/recipes/getRecipes
+      Handler: getRecipes.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        GetRecipesApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/recipes
+            Method: GET
+  GetRecipeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getRecipe
+      CodeUri: src/lambdas/recipes/getRecipe
+      Handler: getRecipe.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        GetRecipeApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/recipes/{name}
+            Method: GET
+  DeleteRecipeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deleteRecipe
+      CodeUri: src/lambdas/recipes/deleteRecipe
+      Handler: deleteRecipe.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        DeleteRecipeApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/recipes/{name}
+            Method: DELETE
+  UpdateRecipeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: updateRecipe
+      CodeUri: src/lambdas/recipes/updateRecipe
+      Handler: updateRecipe.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        UpdateRecipeApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/recipes/{name}
+            Method: PATCH
+#  Dynamo DB definitions
+  PlatePadRecipesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: platepad_recipes
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: name
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  PlatePadIngredientsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: platepad_ingredients
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: name
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+Outputs:
+  LogInFunctionArn:
+    Value: !Ref LogInFunction
+    Export:
+      Name: LogInFunctionArn
+  SignUpFunctionArn:
+    Value: !Ref SignUpFunction
+    Export:
+      Name: SignUpFunctionArn
+  ConfirmEmailFunctionArn:
+    Value: !Ref ConfirmEmailFunction
+    Export:
+      Name: ConfirmEmailFunctionArn
+  SaveIngredientFunctionArn:
+    Value: !Ref SaveIngredientFunction
+    Export:
+      Name: SaveIngredientFunctionArn
+  GetIngredientFunctionArn:
+    Value: !Ref GetIngredientFunction
+    Export:
+      Name: GetIngredientFunctionArn
