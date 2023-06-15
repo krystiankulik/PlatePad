@@ -2,14 +2,12 @@ const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-    const { name } = event.pathParameters;
-    const { sub: userId } = event.requestContext.authorizer.claims;
+    const {name} = event.pathParameters;
+    const {sub: userId} = event.requestContext.authorizer.claims;
 
     const params = {
-        TableName: 'platepad_ingredients',
-        Key: {
-            'userId': userId,
-            'name': name,
+        TableName: 'platepad_ingredients', Key: {
+            'userId': userId, 'name': name,
         },
     };
 
@@ -18,8 +16,7 @@ exports.handler = async (event) => {
         const data = await docClient.get(params).promise();
         if (!data.Item) {
             return {
-                statusCode: 404,
-                body: JSON.stringify({message: 'Ingredient not found'}),
+                statusCode: 404, body: JSON.stringify({message: 'Ingredient not found'}),
             };
         }
 
@@ -27,14 +24,12 @@ exports.handler = async (event) => {
         await docClient.delete(params).promise();
 
         return {
-            statusCode: 200,
-            body: JSON.stringify({message: 'Ingredient deleted successfully'}),
+            statusCode: 200, body: JSON.stringify({message: 'Ingredient deleted successfully'}),
         };
     } catch (error) {
         console.error(error);
         return {
-            statusCode: 500,
-            body: JSON.stringify(error),
+            statusCode: 500, body: JSON.stringify(error),
         };
     }
 };
