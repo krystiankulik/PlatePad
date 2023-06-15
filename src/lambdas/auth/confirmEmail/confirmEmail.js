@@ -10,7 +10,6 @@ exports.handler = async (event) => {
 
     try {
         await cognito.confirmSignUp(params).promise();
-
         return {
             statusCode: 200, body: JSON.stringify({message: 'Email confirmed successfully'})
         };
