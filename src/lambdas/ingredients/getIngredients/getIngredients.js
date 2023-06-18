@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const {global} = event.queryStringParameters || {};
@@ -15,15 +16,15 @@ exports.handler = async (event) => {
 
     try {
         const data = await docClient.query(params).promise();
-        return {
+        return transformResponse({
             statusCode: 200, body: JSON.stringify(data.Items.map(({name, displayName, macro}) => ({
                 name, displayName, macro
             })))
-        };
+        });
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error)
-        };
+        });
     }
 };

@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const userId = event.requestContext.authorizer.claims.sub;
@@ -19,15 +20,15 @@ exports.handler = async (event) => {
         if (data.Item) {
             existingItem = data.Item;
         } else {
-            return {
+            return transformResponse({
                 statusCode: 404, body: JSON.stringify({message: "Recipe not found"}),
-            };
+            });
         }
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error),
-        };
+        });
     }
 
     // Check if all ingredients exist, if ingredientValues is provided
@@ -57,9 +58,9 @@ exports.handler = async (event) => {
             }).promise();
 
             if (!ingredientDataForUser.Items.length && !ingredientDataGlobal.Items.length) {
-                return {
+                return transformResponse({
                     statusCode: 400, body: JSON.stringify({message: `Ingredient ${ingredientName} does not exist`}),
-                };
+                });
             }
         }
     }
@@ -74,13 +75,13 @@ exports.handler = async (event) => {
 
     try {
         await docClient.put(putParams).promise();
-        return {
+        return transformResponse({
             statusCode: 204
-        };
+        });
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error),
-        };
+        });
     }
 };

@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const name = event.pathParameters.name;
@@ -21,15 +22,15 @@ exports.handler = async (event) => {
     try {
         const queryData = await docClient.query(queryParams).promise();
         if (!queryData.Items || queryData.Items.length === 0) {
-            return {
+            return transformResponse({
                 statusCode: 404, body: JSON.stringify({message: "Ingredient not found"}),
-            };
+            });
         }
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error),
-        };
+        });
     }
 
     // Update existing item with new details (excluding name and userId)
@@ -44,13 +45,13 @@ exports.handler = async (event) => {
 
     try {
         await docClient.put(putParams).promise();
-        return {
+        return transformResponse({
             statusCode: 204
-        };
+        });
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error),
-        };
+        });
     }
 };

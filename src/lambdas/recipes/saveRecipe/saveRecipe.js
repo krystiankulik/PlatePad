@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const recipeDetails = JSON.parse(event.body);
@@ -39,28 +40,26 @@ exports.handler = async (event) => {
         );
     } catch (error) {
         console.error(error);
-        const response = {
+        return transformResponse({
             statusCode: 500,
             body: JSON.stringify({
                 message: error.message,
                 code: error.code
             }),
-        };
-        return response;
+        });
     }
 
     for (let i = 0; i < ingredientsData.length; i++) {
         // Flatten the results
         const [userIngredient, globalIngredient] = ingredientsData[i];
         if (!userIngredient.Items[0] && !globalIngredient.Items[0]) {
-            const response = {
+            return transformResponse({
                 statusCode: 404,
                 body: JSON.stringify({
                     message: 'Ingredient not found',
                     ingredient: ingredients[i]
                 }),
-            };
-            return response;
+            });
         }
     }
 
@@ -93,18 +92,17 @@ exports.handler = async (event) => {
     try {
         const queryData = await Promise.all(queryParams.map(param => docClient.query(param).promise()));
         if ((queryData[0].Items && queryData[0].Items.length > 0) || (queryData[1].Items && queryData[1].Items.length > 0)) {
-            const response = {
+            return transformResponse({
                 statusCode: 400,
-                body: JSON.stringify({ message: 'Recipe already exists for this user or globally.' })
-            };
-            return response;
+                body: JSON.stringify({message: 'Recipe already exists for this user or globally.'})
+            });
         }
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500,
             body: JSON.stringify(error),
-        };
+        });
     }
 
     const params = {
@@ -117,18 +115,18 @@ exports.handler = async (event) => {
 
     try {
         await docClient.put(params).promise();
-        return {
+        return transformResponse({
             statusCode: 201,
             body: JSON.stringify({message: 'Object created successfully'})
-        };
+        });
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500,
             body: JSON.stringify({
                 message: error.message,
                 code: error.code
             }),
-        };
+        });
     }
 };

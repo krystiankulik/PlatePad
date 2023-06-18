@@ -6,12 +6,9 @@ Parameters:
   CognitoUserPoolArn:
     Type: String
     Description: The ARN of the Cognito User Pool
-Globals:
-  Api:
-    Auth:
-      Authorizers:
-        PlatePadCognitoAuthorizer:
-          UserPoolArn: !Ref CognitoUserPoolArn
+  CognitoUserId:
+    Type: String
+    Description: User Id used for Integration with Cognito
 Resources:
   PlatePadGateway:
     Type: AWS::Serverless::Api
@@ -19,10 +16,22 @@ Resources:
       Name: platePad_gateway
       StageName: prod
       Auth:
-        DefaultAuthorizer: PlatePadCognitoAuthorizer
         Authorizers:
           PlatePadCognitoAuthorizer:
             UserPoolArn: !Ref CognitoUserPoolArn
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+  # CORS lambda layer config
+  PlatePadResponseLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: PlatePadResponseLayer
+      Description: Layer for CORS headers
+      ContentUri: platePadResponseLayer/
+      CompatibleRuntimes:
+        - nodejs14.x
   # auth endpoints definitions
   LogInFunction:
     Type: AWS::Serverless::Function
@@ -44,8 +53,11 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/auth/login
             Method: POST
-            Auth:
-              Authorizer: NONE
+      Layers:
+        - !Ref PlatePadResponseLayer
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserId
   SignUpFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -66,8 +78,11 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/auth/signup
             Method: POST
-            Auth:
-              Authorizer: NONE
+      Layers:
+        - !Ref PlatePadResponseLayer
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserId
   ConfirmEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -88,8 +103,11 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/auth/confirm-email
             Method: POST
-            Auth:
-              Authorizer: NONE
+      Layers:
+        - !Ref PlatePadResponseLayer
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserId
   # ingredients endpoints definitions
   SaveIngredientFunction:
     Type: AWS::Serverless::Function
@@ -110,6 +128,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/ingredients
             Method: POST
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   GetIngredientsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -129,6 +151,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/ingredients
             Method: GET
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   GetIngredientFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -148,6 +174,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/ingredients/{name}
             Method: GET
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   DeleteIngredientFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -167,6 +197,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/ingredients/{name}
             Method: DELETE
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   UpdateIngredientFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -186,6 +220,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/ingredients/{name}
             Method: PATCH
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   # recipes endpoints definitions
   SaveRecipeFunction:
     Type: AWS::Serverless::Function
@@ -206,6 +244,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/recipes
             Method: POST
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   GetRecipesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -225,6 +267,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/recipes
             Method: GET
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   GetRecipeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -244,6 +290,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/recipes/{name}
             Method: GET
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   DeleteRecipeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -263,6 +313,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/recipes/{name}
             Method: DELETE
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   UpdateRecipeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -282,6 +336,10 @@ Resources:
             RestApiId: !Ref PlatePadGateway
             Path: /api/recipes/{name}
             Method: PATCH
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
 #  Dynamo DB definitions
   PlatePadRecipesTable:
     Type: AWS::DynamoDB::Table

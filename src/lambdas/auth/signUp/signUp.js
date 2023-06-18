@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const cognito = new AWS.CognitoIdentityServiceProvider();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const { email, password } = JSON.parse(event.body);
@@ -18,18 +19,18 @@ exports.handler = async (event) => {
 
     try {
         await cognito.signUp(params).promise();
-        return {
+        return transformResponse({
             statusCode: 200,
             body: JSON.stringify({ message: 'User signed up successfully' }),
-        };
+        });
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500,
             body: JSON.stringify({
                 message: error.message,
                 code: error.code,
             }),
-        };
+        });
     }
 };

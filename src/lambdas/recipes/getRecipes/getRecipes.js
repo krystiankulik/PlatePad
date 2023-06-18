@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const cognitoUserId = event.requestContext.authorizer.claims.sub; // Extract user ID from Cognito authentication token
@@ -61,18 +62,18 @@ exports.handler = async (event) => {
             };
         }));
 
-        return {
+        return transformResponse({
             statusCode: 200,
             body: JSON.stringify(recipes)
-        };
+        });
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500,
             body: JSON.stringify({
                 message: error.message,
                 code: error.code
             }),
-        };
+        });
     }
 };

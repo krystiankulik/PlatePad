@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event, context) => {
     const {name, displayName, macro} = JSON.parse(event.body);
@@ -8,9 +9,9 @@ exports.handler = async (event, context) => {
 
     // Check if the principalId is present
     if (!cognitoUserId) {
-        return {
+        return transformResponse({
             statusCode: 401, body: JSON.stringify({message: 'Unauthorized. No userId found.'})
-        };
+        });
     }
 
     const {calories, proteins, fats, carbohydrates} = macro;
@@ -28,17 +29,17 @@ exports.handler = async (event, context) => {
 
         // If the item exists, return 400
         if (globalExistingItem) {
-            return {
+            return transformResponse({
                 statusCode: 400, body: JSON.stringify({message: 'Ingredient with this name already exists globally.'})
-            };
+            });
         }
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify({
                 message: error.message, code: error.code
             }),
-        };
+        });
     }
 
     // Check if an ingredient with the same name and current userId already exists in the database
@@ -54,10 +55,10 @@ exports.handler = async (event, context) => {
 
         // If the item exists, return 400
         if (existingItem) {
-            return {
+            return transformResponse({
                 statusCode: 400,
                 body: JSON.stringify({message: 'Ingredient with this name already exists for this user.'})
-            };
+            });
         }
 
         // If no ingredient with the same name and user ID exists, add the new ingredient
@@ -70,15 +71,15 @@ exports.handler = async (event, context) => {
         };
         await docClient.put(putParams).promise();
 
-        return {
+        return transformResponse({
             statusCode: 201, body: JSON.stringify({message: 'Object created successfully'})
-        };
+        });
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify({
                 message: error.message, code: error.code
             }),
-        };
+        });
     }
 };

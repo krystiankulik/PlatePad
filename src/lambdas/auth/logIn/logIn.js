@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const cognito = new AWS.CognitoIdentityServiceProvider();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const {email, password} = JSON.parse(event.body);
@@ -12,14 +13,14 @@ exports.handler = async (event) => {
 
     try {
         const data = await cognito.initiateAuth(params).promise();
-        return {
+        return transformResponse({
             statusCode: 200, body: JSON.stringify({identityToken: data.AuthenticationResult.IdToken})
-        };
+        });
     } catch (error) {
         console.error(error);
 
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify({message: 'Error logging in user'})
-        };
+        });
     }
 };

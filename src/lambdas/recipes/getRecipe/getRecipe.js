@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const {name} = event.pathParameters;
@@ -28,16 +29,16 @@ exports.handler = async (event) => {
             if (globalRecipeData.Item) {
                 recipe = globalRecipeData.Item;
             } else {
-                return {
+                return transformResponse({
                     statusCode: 404, body: JSON.stringify({message: "Recipe not found"}),
-                };
+                });
             }
         }
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error),
-        };
+        });
     }
 
     // Retrieve all ingredients
@@ -55,9 +56,9 @@ exports.handler = async (event) => {
         ingredientValues = await Promise.all(ingredientPromises);
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error),
-        };
+        });
     }
 
     // Replace ingredient names with actual ingredient objects
@@ -82,7 +83,7 @@ exports.handler = async (event) => {
         ingredientValues: recipe.ingredientValues
     };
 
-    return {
+    return transformResponse({
         statusCode: 200, body: JSON.stringify(responseBody),
-    };
+    });
 };

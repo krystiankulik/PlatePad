@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
+const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const {name} = event.pathParameters;
@@ -14,20 +15,20 @@ exports.handler = async (event) => {
 
         if (data.Item) {
             const {name, displayName, macro} = data.Item;
-            return {
+            return transformResponse({
                 statusCode: 200, body: JSON.stringify({
                     name, displayName, macro
                 })
-            };
+            });
         } else {
-            return {
+            return transformResponse({
                 statusCode: 404, body: JSON.stringify({message: "Ingredient not found"})
-            };
+            });
         }
     } catch (error) {
         console.error(error);
-        return {
+        return transformResponse({
             statusCode: 500, body: JSON.stringify(error)
-        };
+        });
     }
 };
