@@ -20,7 +20,7 @@ exports.handler = async (event) => {
         console.error(error);
 
         return transformResponse({
-            statusCode: 500, body: JSON.stringify({message: 'Error logging in user'})
+            statusCode: 400, body: JSON.stringify({message: 'Incorrect username or password'})
         });
     }
 };

@@ -18,7 +18,8 @@ exports.handler = async (event) => {
         console.error(error);
 
         return transformResponse({
-            statusCode: 500, body: JSON.stringify({message: 'Error confirming email'})
+            statusCode: error.statusCode || 500,
+            body: JSON.stringify({message: error.message || 'Error confirming email'})
         });
     }
 };
