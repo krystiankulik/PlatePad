@@ -3,21 +3,28 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
-    const {global} = event.queryStringParameters || {};
-    const {sub: userId} = event.requestContext.authorizer.claims;
+    const { global, search } = event.queryStringParameters || {};
+    const { sub: userId } = event.requestContext.authorizer.claims;
 
     const globalUserId = global === 'true' ? 'global' : userId;
 
-    const params = {
+    // Base query parameters
+    const baseParams = {
         TableName: 'platepad_ingredients',
         KeyConditionExpression: 'userId = :userId',
-        ExpressionAttributeValues: {':userId': globalUserId}
+        ExpressionAttributeValues: { ':userId': globalUserId }
     };
 
+    if (search) {
+        baseParams.FilterExpression = 'contains(name, :search) OR contains(displayName, :search)';
+        baseParams.ExpressionAttributeValues[':search'] = search;
+    }
+
     try {
-        const data = await docClient.query(params).promise();
+        const data = await docClient.query(baseParams).promise();
         return transformResponse({
-            statusCode: 200, body: JSON.stringify(data.Items.map(({name, displayName, macro}) => ({
+            statusCode: 200,
+            body: JSON.stringify(data.Items.map(({ name, displayName, macro }) => ({
                 name, displayName, macro
             })))
         });
