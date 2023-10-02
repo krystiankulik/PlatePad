@@ -2,19 +2,19 @@ const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
 const transformResponse = require('platePadResponseLayer');
 
-exports.handler = async (event, context) => {
-    const {name, displayName, macro} = JSON.parse(event.body);
+exports.handler = async (event) => {
+    const { name, displayName, macro } = JSON.parse(event.body);
     const cognitoUserId = event.requestContext.authorizer.claims.sub; // Extract user ID from Cognito authentication token
 
 
     // Check if the principalId is present
     if (!cognitoUserId) {
         return transformResponse({
-            statusCode: 401, body: JSON.stringify({message: 'Unauthorized. No userId found.'})
+            statusCode: 401, body: JSON.stringify({ message: 'Unauthorized. No userId found.' })
         });
     }
 
-    const {calories, proteins, fats, carbohydrates} = macro;
+    const { calories, proteins, fats, carbohydrates } = macro;
 
     // Check if an ingredient with the same name and userId 'global' already exists in the database
     const globalCheckParams = {
@@ -30,7 +30,7 @@ exports.handler = async (event, context) => {
         // If the item exists, return 400
         if (globalExistingItem) {
             return transformResponse({
-                statusCode: 400, body: JSON.stringify({message: 'Ingredient with this name already exists globally.'})
+                statusCode: 400, body: JSON.stringify({ message: 'Ingredient with this name already exists globally.' })
             });
         }
     } catch (error) {
@@ -57,14 +57,18 @@ exports.handler = async (event, context) => {
         if (existingItem) {
             return transformResponse({
                 statusCode: 400,
-                body: JSON.stringify({message: 'Ingredient with this name already exists for this user.'})
+                body: JSON.stringify({ message: 'Ingredient with this name already exists for this user.' })
             });
         }
 
         // If no ingredient with the same name and user ID exists, add the new ingredient
         const putParams = {
             TableName: 'platepad_ingredients', Item: {
-                userId: cognitoUserId, name, displayName, macro: {
+                userId: cognitoUserId,
+                name,
+                displayName,
+                displayNameLowerCase: displayName.toLowerCase(),
+                macro: {
                     calories, proteins, fats, carbohydrates
                 }
             }
@@ -72,7 +76,7 @@ exports.handler = async (event, context) => {
         await docClient.put(putParams).promise();
 
         return transformResponse({
-            statusCode: 201, body: JSON.stringify({message: 'Object created successfully'})
+            statusCode: 201, body: JSON.stringify({ message: 'Object created successfully' })
         });
     } catch (error) {
         console.error(error);

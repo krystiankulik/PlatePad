@@ -17,7 +17,7 @@ Run the following in your shell:
 
 ```bash
 sam build
-sam deploy  --parameter-overrides CognitoUserPoolArn="<CognitoUserPoolArn>"
+sam deploy  --parameter-overrides CognitoUserPoolArn="<CognitoUserPoolArn>" CognitoUserId=""
 ```
 
 ## Cleanup

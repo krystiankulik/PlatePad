@@ -16,8 +16,9 @@ exports.handler = async (event) => {
     };
 
     if (search) {
-        baseParams.FilterExpression = 'contains(name, :search) OR contains(displayName, :search)';
-        baseParams.ExpressionAttributeValues[':search'] = search;
+        const lowerSearch = search.toLowerCase();
+        baseParams.FilterExpression = 'contains(displayNameLowerCase, :search)';
+        baseParams.ExpressionAttributeValues[':search'] = lowerSearch;
     }
 
     try {
