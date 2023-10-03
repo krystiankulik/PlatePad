@@ -94,7 +94,7 @@ exports.handler = async (event) => {
         if ((queryData[0].Items && queryData[0].Items.length > 0) || (queryData[1].Items && queryData[1].Items.length > 0)) {
             return transformResponse({
                 statusCode: 400,
-                body: JSON.stringify({message: 'Recipe already exists for this user or globally.'})
+                body: JSON.stringify({ message: 'Recipe already exists for this user or globally.' })
             });
         }
     } catch (error) {
@@ -105,10 +105,48 @@ exports.handler = async (event) => {
         });
     }
 
+    const getMacro = () => {
+        let totalMacro = {
+            calories: 0,
+            proteins: 0,
+            fats: 0,
+            carbohydrates: 0,
+        };
+
+        for (let i = 0; i < recipeDetails.ingredientValues.length; i++) {
+            let ingredientAmount = recipeDetails.ingredientValues[i].amount;
+
+            // Fetch the ingredient either from userIngredient or globalIngredient.
+            let ingredient;
+            if (ingredientsData[i][0].Items[0]) {
+                ingredient = ingredientsData[i][0].Items[0];
+            } else {
+                ingredient = ingredientsData[i][1].Items[0];
+            }
+
+            let multiplier = ingredientAmount / 100; // as macros are given per 100g
+
+            totalMacro.calories += (ingredient.macro.calories || 0) * multiplier;
+            totalMacro.proteins += (ingredient.macro.proteins || 0) * multiplier;
+            totalMacro.fats += (ingredient.macro.fats || 0) * multiplier;
+            totalMacro.carbohydrates += (ingredient.macro.carbohydrates || 0) * multiplier;
+        }
+
+        // Round the values to integers
+        totalMacro.calories = Math.round(totalMacro.calories);
+        totalMacro.proteins = Math.round(totalMacro.proteins);
+        totalMacro.fats = Math.round(totalMacro.fats);
+        totalMacro.carbohydrates = Math.round(totalMacro.carbohydrates);
+
+        return totalMacro;
+    };
+
+
     const params = {
         TableName: 'platepad_recipes',
         Item: {
             ...recipeDetails,
+            macro: getMacro(),
             userId: cognitoUserId  // Add userId to the recipe item
         }
     };
@@ -117,7 +155,7 @@ exports.handler = async (event) => {
         await docClient.put(params).promise();
         return transformResponse({
             statusCode: 201,
-            body: JSON.stringify({message: 'Object created successfully'})
+            body: JSON.stringify({ message: 'Object created successfully' })
         });
     } catch (error) {
         console.error(error);

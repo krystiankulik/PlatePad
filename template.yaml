@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: PlatePad SAM template
 
@@ -340,7 +340,34 @@ Resources:
               Authorizer: PlatePadCognitoAuthorizer
       Layers:
         - !Ref PlatePadResponseLayer
-#  Dynamo DB definitions
+  UploadIngredientImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: uploadIngredientImage
+      CodeUri: src/lambdas/ingredients/uploadIngredientImage
+      Handler: uploadIngredientImage.handler
+      Runtime: nodejs14.x
+      Role: !GetAtt PlatePadLambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        UploadIngredientImageApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/ingredients/{name}/image
+            Method: POST
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
+      Environment:
+        Variables:
+          ENV_VARIABLE_NAME: value
+  #  Dynamo DB definitions
   PlatePadRecipesTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -375,6 +402,70 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+  PlatePadImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: plate-pad-images-bucket
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - "GET"
+              - "PUT"
+              - "POST"
+              - "DELETE"
+            AllowedOrigins:
+              - "*"
+            MaxAge: 3000
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+  PlatePadLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: PlatePadS3AccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub arn:aws:s3:::plate-pad-images-bucket
+                  - !Sub arn:aws:s3:::plate-pad-images-bucket/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                Resource: "*"
+  PlatePadImagesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PlatePadImagesBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:GetObject
+            Resource: arn:aws:s3:::plate-pad-images-bucket/*
 
 Outputs:
   LogInFunctionArn:
@@ -397,3 +488,8 @@ Outputs:
     Value: !Ref GetIngredientFunction
     Export:
       Name: GetIngredientFunctionArn
+  ImagesBucketName:
+    Description: Name of the S3 bucket to hold images
+    Value: !Ref PlatePadImagesBucket
+    Export:
+      Name: PlatePadImagesBucketArn
