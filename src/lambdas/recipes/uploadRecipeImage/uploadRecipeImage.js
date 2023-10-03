@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     // Define S3 parameters
     const params = {
         Bucket: 'plate-pad-images-bucket',
-        Key: `recipes/${name}.jpg`,
+        Key: `recipes/${name}.jpg?t=${Date.now()}`,
         Body: imageBuffer,
         ContentType: 'image/jpeg',
     };
