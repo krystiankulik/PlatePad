@@ -25,8 +25,8 @@ exports.handler = async (event) => {
         const data = await docClient.query(baseParams).promise();
         return transformResponse({
             statusCode: 200,
-            body: JSON.stringify(data.Items.map(({ name, displayName, macro }) => ({
-                name, displayName, macro
+            body: JSON.stringify(data.Items.map(({ name, displayName, imageUrl, macro }) => ({
+                name, displayName, imageUrl, macro
             })))
         });
     } catch (error) {

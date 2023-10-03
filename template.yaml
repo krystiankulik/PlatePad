@@ -367,6 +367,33 @@ Resources:
       Environment:
         Variables:
           ENV_VARIABLE_NAME: value
+  UploadRecipeImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: uploadRecipeImage
+      CodeUri: src/lambdas/recipes/uploadRecipeImage
+      Handler: uploadRecipeImage.handler
+      Runtime: nodejs14.x
+      Role: !GetAtt PlatePadLambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        UploadRecipeImageApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/recipes/{name}/image
+            Method: POST
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
+      Environment:
+        Variables:
+          ENV_VARIABLE_NAME: value
   #  Dynamo DB definitions
   PlatePadRecipesTable:
     Type: AWS::DynamoDB::Table

@@ -14,10 +14,10 @@ exports.handler = async (event) => {
         const data = await docClient.get(params).promise();
 
         if (data.Item) {
-            const {name, displayName, macro} = data.Item;
+            const {name, displayName, imageUrl, macro} = data.Item;
             return transformResponse({
                 statusCode: 200, body: JSON.stringify({
-                    name, displayName, macro
+                    name, displayName, imageUrl, macro
                 })
             });
         } else {

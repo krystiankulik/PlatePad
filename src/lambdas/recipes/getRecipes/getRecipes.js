@@ -58,6 +58,7 @@ exports.handler = async (event) => {
                 "displayName": recipe.displayName,
                 "macro": recipe.macro,
                 "description": recipe.description,
+                "imageUrl": recipe.imageUrl,
                 "ingredientValues": recipe.ingredientValues
             };
         }));
