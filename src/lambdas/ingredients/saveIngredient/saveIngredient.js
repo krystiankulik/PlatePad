@@ -4,11 +4,13 @@ const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const { name, displayName, macro } = JSON.parse(event.body);
-    const cognitoUserId = event.requestContext.authorizer.claims.sub; // Extract user ID from Cognito authentication token
+
+    const cognitoRole = event.requestContext.authorizer.claims["custom:role"];
+    const userId = cognitoRole === "admin" ? "global" : event.requestContext.authorizer.claims.sub;
 
 
     // Check if the principalId is present
-    if (!cognitoUserId) {
+    if (!userId) {
         return transformResponse({
             statusCode: 401, body: JSON.stringify({ message: 'Unauthorized. No userId found.' })
         });
@@ -45,7 +47,7 @@ exports.handler = async (event) => {
     // Check if an ingredient with the same name and current userId already exists in the database
     const getParams = {
         TableName: 'platepad_ingredients', Key: {
-            "userId": cognitoUserId, "name": name
+            "userId": userId, "name": name
         }
     };
 
@@ -64,7 +66,7 @@ exports.handler = async (event) => {
         // If no ingredient with the same name and user ID exists, add the new ingredient
         const putParams = {
             TableName: 'platepad_ingredients', Item: {
-                userId: cognitoUserId,
+                userId: userId,
                 name,
                 displayName,
                 displayNameLowerCase: displayName.toLowerCase(),

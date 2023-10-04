@@ -26,4 +26,10 @@ sam deploy  --parameter-overrides CognitoUserPoolArn="<CognitoUserPoolArn>" Cogn
 ```bash
 sam delete --stack-name platepad
 ```
-Also, remove the Cognito configuration from the AWS Console
+Also, remove the Cognito configuration from the AWS Console  
+
+
+## Setting an admin user for global recipes and ingredients
+To be able to add global recipes and ingredients we need to have an admin user.  
+All the items saved with this user will have "global" userId.  
+To do it assign a custom attribute for a chosed unser in the Cognito console - custom:role=admin

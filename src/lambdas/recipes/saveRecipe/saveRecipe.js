@@ -5,7 +5,10 @@ const transformResponse = require('platePadResponseLayer');
 exports.handler = async (event) => {
     const recipeDetails = JSON.parse(event.body);
     const ingredients = recipeDetails.ingredientValues.map(item => item.ingredient);
-    const cognitoUserId = event.requestContext.authorizer.claims.sub; // Extract user ID from Cognito authentication token
+
+    const cognitoRole = event.requestContext.authorizer.claims["custom:role"];
+    const userId = cognitoRole === "admin" ? "global" : event.requestContext.authorizer.claims.sub;
+
     let ingredientsData;
 
     try {
@@ -17,7 +20,7 @@ exports.handler = async (event) => {
                         TableName: 'platepad_ingredients',
                         KeyConditionExpression: 'userId = :userId and #n = :name',
                         ExpressionAttributeValues: {
-                            ':userId': cognitoUserId,
+                            ':userId': userId,
                             ':name': ingredient
                         },
                         ExpressionAttributeNames: {
@@ -69,7 +72,7 @@ exports.handler = async (event) => {
             TableName: 'platepad_recipes',
             KeyConditionExpression: 'userId = :userId and #n = :name',
             ExpressionAttributeValues: {
-                ':userId': cognitoUserId,
+                ':userId': userId,
                 ':name': recipeDetails.name
             },
             ExpressionAttributeNames: {
@@ -147,7 +150,7 @@ exports.handler = async (event) => {
         Item: {
             ...recipeDetails,
             macro: getMacro(),
-            userId: cognitoUserId  // Add userId to the recipe item
+            userId: userId  // Add userId to the recipe item
         }
     };
 

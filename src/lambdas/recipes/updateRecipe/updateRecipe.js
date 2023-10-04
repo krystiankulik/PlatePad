@@ -3,7 +3,10 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
-    const userId = event.requestContext.authorizer.claims.sub;
+
+    const cognitoRole = event.requestContext.authorizer.claims["custom:role"];
+    const userId = cognitoRole === "admin" ? "global" : event.requestContext.authorizer.claims.sub;
+
     const name = event.pathParameters.name;
     const {name: _, userId: __, ...recipeDetails} = JSON.parse(event.body);
 
