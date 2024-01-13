@@ -178,12 +178,12 @@ Resources:
               Authorizer: PlatePadCognitoAuthorizer
       Layers:
         - !Ref PlatePadResponseLayer
-  GetGlobalIngredientsFunction:
+  GetIngredientsGlobalFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getGlobalIngredients
-      CodeUri: src/lambdas/ingredients/getGlobalIngredients
-      Handler: getGlobalIngredients.handler
+      FunctionName: getIngredientsGlobal
+      CodeUri: src/lambdas/ingredients/getIngredientsGlobal
+      Handler: getIngredientsGlobal.handler
       Runtime: nodejs14.x
       Architectures:
         - x86_64
@@ -315,12 +315,12 @@ Resources:
               Authorizer: PlatePadCognitoAuthorizer
       Layers:
         - !Ref PlatePadResponseLayer
-  GetGloablRecipesFunction:
+  GetRecipesGlobalFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: getGlobalRecipes
-      CodeUri: src/lambdas/recipes/getGlobalRecipes
-      Handler: getGlobalRecipes.handler
+      FunctionName: getRecipesGlobal
+      CodeUri: src/lambdas/recipes/getRecipesGlobal
+      Handler: getRecipesGlobal.handler
       Runtime: nodejs14.x
       Architectures:
         - x86_64
