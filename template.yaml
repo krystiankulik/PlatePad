@@ -132,6 +132,29 @@ Resources:
               Authorizer: PlatePadCognitoAuthorizer
       Layers:
         - !Ref PlatePadResponseLayer
+  SaveIngredientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: saveIngredients
+      CodeUri: src/lambdas/ingredients/saveIngredients
+      Handler: saveIngredients.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        SaveIngredientsApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/ingredients/batch
+            Method: POST
+            Auth:
+              Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
   GetIngredientsFunction:
     Type: AWS::Serverless::Function
     Properties:

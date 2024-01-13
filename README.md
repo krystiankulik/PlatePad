@@ -33,3 +33,4 @@ Also, remove the Cognito configuration from the AWS Console
 To be able to add global recipes and ingredients we need to have an admin user.  
 All the items saved with this user will have "global" userId.  
 To do it assign a custom attribute for a chosed unser in the Cognito console - custom:role=admin
+You have to also configure the read/write access to that attribute in "Attribute read and write permissions" section somewhere in "App integration" settings. Be sure to create a new user token after this setting is set up.
