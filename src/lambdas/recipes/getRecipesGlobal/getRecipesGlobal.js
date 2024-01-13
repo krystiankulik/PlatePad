@@ -20,25 +20,13 @@ exports.handler = async () => {
             recipe.ingredientValues = await Promise.all(recipe.ingredientValues.map(async (ingredientValue) => {
                 const ingredientName = ingredientValue.ingredient;
 
-                // Try to fetch user-specific ingredient first
                 let ingredientData = await docClient.get({
                     TableName: 'platepad_ingredients',
                     Key: {
-                        'userId': cognitoUserId,
+                        'userId': 'global',
                         'name': ingredientName
                     }
                 }).promise();
-
-                // If user-specific ingredient is not found, try to fetch global ingredient
-                if (!ingredientData.Item) {
-                    ingredientData = await docClient.get({
-                        TableName: 'platepad_ingredients',
-                        Key: {
-                            'userId': 'global',
-                            'name': ingredientName
-                        }
-                    }).promise();
-                }
 
                 const ingredient = ingredientData.Item;
                 ingredientValue.ingredient = {
