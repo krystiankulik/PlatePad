@@ -3,14 +3,13 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
-    const { search } = event.queryStringParameters || {};
-    const { sub: userId } = event.requestContext.authorizer.claims;
 
-    // Base query parameters
+    const { search } = event.queryStringParameters || {};
+
     const baseParams = {
         TableName: 'platepad_ingredients',
         KeyConditionExpression: 'userId = :userId',
-        ExpressionAttributeValues: { ':userId': userId }
+        ExpressionAttributeValues: { ':userId': 'global' }
     };
 
     if (search) {

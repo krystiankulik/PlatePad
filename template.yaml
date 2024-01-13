@@ -178,6 +178,27 @@ Resources:
               Authorizer: PlatePadCognitoAuthorizer
       Layers:
         - !Ref PlatePadResponseLayer
+  GetGlobalIngredientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getGlobalIngredients
+      CodeUri: src/lambdas/ingredients/getGlobalIngredients
+      Handler: getGlobalIngredients.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        GetIngredientApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/global-ingredients
+            Method: GET
+      Layers:
+        - !Ref PlatePadResponseLayer
   GetIngredientFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -292,6 +313,27 @@ Resources:
             Method: GET
             Auth:
               Authorizer: PlatePadCognitoAuthorizer
+      Layers:
+        - !Ref PlatePadResponseLayer
+  GetGloablRecipesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getGlobalRecipes
+      CodeUri: src/lambdas/recipes/getGlobalRecipes
+      Handler: getGlobalRecipes.handler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "*"
+      Events:
+        GetRecipesApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PlatePadGateway
+            Path: /api/global-recipes
+            Method: GET
       Layers:
         - !Ref PlatePadResponseLayer
   GetRecipeFunction:
