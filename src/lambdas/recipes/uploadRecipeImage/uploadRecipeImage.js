@@ -5,7 +5,10 @@ const transformResponse = require('platePadResponseLayer');
 
 exports.handler = async (event) => {
     const name = event.pathParameters.name;
-    const { sub: userId } = event.requestContext.authorizer.claims;
+
+    const cognitoRole = event.requestContext.authorizer.claims["custom:role"];
+    const userId = cognitoRole === "admin" ? "global" : event.requestContext.authorizer.claims.sub;
+
     const payload = JSON.parse(event.body);
 
     const imageBuffer = Buffer.from(payload.image, 'base64');
